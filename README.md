@@ -1,24 +1,10 @@
 # Cursor for Designer
 
-<p align="center">
-  <img src="assets/logo.png" alt="Cursor for Designer Logo" width="200"/>
-  <br>
-  <em>AI-Powered Design Workspace for Modern Developers</em>
-</p>
+![image](https://github.com/user-attachments/assets/ef9671f3-4556-4526-be5c-edc948a58b32)
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+![image](https://github.com/user-attachments/assets/9e6e3468-9d6f-4677-bace-cf3f0b153e95)
 
-<p align="center">
-  <a href="#features">Features</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#usage">Usage</a> •
-  <a href="#architecture">Architecture</a> •
-  <a href="#api">API</a> •
-  <a href="#contributing">Contributing</a> •
-  <a href="#license">License</a>
-</p>
 
-<p align="center">
-  <img src="assets/screenshot.png" alt="Cursor for Designer Screenshot" width="800"/>
-</p>
 
 ## 🚀 Overview
 

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Appointy Global Representative</title>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background: linear-gradient(to bottom, #0a192f, #20232a);
+            font-family: 'Arial', sans-serif;
+        }
+        canvas { 
+            width: 100%; 
+            height: 100%; 
+        }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .btn {
+            background: rgba(0,123,255,0.7);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: rgba(0,123,255,1);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <button id="autoRotateBtn" class="btn">Toggle Auto Rotate</button>
+        <button id="resetBtn" class="btn">Reset View</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Scene setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 3, 5);
+        scene.add(directionalLight);
+
+        // Texture Loader
+        const textureLoader = new THREE.TextureLoader();
+        const earthTexture = textureLoader.load(
+            'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/land_ocean_ice_cloud_2048.jpg'
+        );
+
+        // Globe Geometry
+        const globeGeometry = new THREE.SphereGeometry(1, 64, 64);
+        const globeMaterial = new THREE.MeshPhongMaterial({
+            map: earthTexture,
+            shininess: 10
+        });
+
+        const earth = new THREE.Mesh(globeGeometry, globeMaterial);
+        scene.add(earth);
+
+        // Human Figure
+        function createHumanFigure() {
+            const humanGroup = new THREE.Group();
+
+            // Head
+            const headGeometry = new THREE.SphereGeometry(0.1, 32, 32);
+            const headMaterial = new THREE.MeshPhongMaterial({ color: 0xffc0cb });
+            const head = new THREE.Mesh(headGeometry, headMaterial);
+            head.position.y = 0.4;
+            humanGroup.add(head);
+
+            // Body
+            const bodyGeometry = new THREE.CylinderGeometry(0.1, 0.15, 0.5, 32);
+            const bodyMaterial = new THREE.MeshPhongMaterial({ color: 0x3498db });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.position.y = 0;
+            humanGroup.add(body);
+
+            // Arms
+            const armGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.4, 32);
+            const armMaterial = new THREE.MeshPhongMaterial({ color: 0xffc0cb });
+            
+            const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+            leftArm.position.set(-0.15, 0.1, 0);
+            leftArm.rotation.z = Math.PI / 4;
+            humanGroup.add(leftArm);
+
+            const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+            rightArm.position.set(0.15, 0.1, 0);
+            rightArm.rotation.z = -Math.PI / 4;
+            humanGroup.add(rightArm);
+
+            // Legs
+            const legGeometry = new THREE.CylinderGeometry(0.06, 0.06, 0.5, 32);
+            const legMaterial = new THREE.MeshPhongMaterial({ color: 0x2ecc71 });
+            
+            const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+            leftLeg.position.set(-0.07, -0.35, 0);
+            leftLeg.rotation.z = 0.1;
+            humanGroup.add(leftLeg);
+
+            const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
+            rightLeg.position.set(0.07, -0.35, 0);
+            rightLeg.rotation.z = -0.1;
+            humanGroup.add(rightLeg);
+
+            // Appointy Flag
+            const flagGeometry = new THREE.PlaneGeometry(0.3, 0.2);
+            const flagMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0x3498db,
+                side: THREE.DoubleSide
+            });
+            const flag = new THREE.Mesh(flagGeometry, flagMaterial);
+            flag.position.set(0.3, 0.3, 0.1);
+            flag.rotation.y = Math.PI / 2;
+            humanGroup.add(flag);
+
+            // Appointy Logo Text
+            const loader = new THREE.FontLoader();
+            loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+                const textGeometry = new THREE.TextGeometry('Appointy', {
+                    font: font,
+                    size: 0.05,
+                    height: 0.01,
+                    curveSegments: 12,
+                    bevelEnabled: false
+                });
+                const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+                textMesh.position.set(0.1, 0.3, 0.2);
+                textMesh.rotation.y = Math.PI / 2;
+                humanGroup.add(textMesh);
+            });
+
+            return humanGroup;
+        }
+
+        // Create and position human
+        const human = createHumanFigure();
+        
+        // Position human on globe
+        const humanPosition = new THREE.Vector3(0, 1.1, 0);
+        human.position.copy(humanPosition.normalize().multiplyScalar(1.05));
+        human.lookAt(new THREE.Vector3(0, 0, 0));
+        
+        scene.add(human);
+
+        // Camera Position
+        camera.position.z = 3;
+
+        // Animation Variables
+        let isAutoRotating = true;
+
+        // Interaction Setup
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+
+        renderer.domElement.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            previousMousePosition = {
+                x: e.clientX,
+                y: e.clientY
+            };
+        });
+
+        renderer.domElement.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+
+            const deltaMove = {
+                x: e.clientX - previousMousePosition.x,
+                y: e.clientY - previousMousePosition.y
+            };
+
+            // Rotate the earth and human
+            earth.rotation.y += deltaMove.x * 0.01;
+            earth.rotation.x += deltaMove.y * 0.01;
+            human.rotation.y += deltaMove.x * 0.01;
+            human.rotation.x += deltaMove.y * 0.01;
+
+            previousMousePosition = {
+                x: e.clientX,
+                y: e.clientY
+            };
+        });
+
+        renderer.domElement.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        renderer.domElement.addEventListener('mouseout', () => {
+            isDragging = false;
+        });
+
+        // Mouse wheel zoom
+        renderer.domElement.addEventListener('wheel', (e) => {
+            camera.position.z += e.deltaY * 0.01;
+            camera.position.z = Math.max(2, Math.min(camera.position.z, 5));
+        });
+
+        // Render Loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Auto rotate if enabled
+            if (isAutoRotating) {
+                earth.rotation.y += 0.005;
+                human.rotation.y += 0.005;
+            }
+
+            // Render scene
+            renderer.render(scene, camera);
+        }
+
+        // Resize Handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Control Buttons
+        document.getElementById('autoRotateBtn').addEventListener('click', () => {
+            isAutoRotating = !isAutoRotating;
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            camera.position.z = 3;
+            earth.rotation.y = 0;
+            earth.rotation.x = 0;
+            human.rotation.y = 0;
+            human.rotation.x = 0;
+        });
+
+        // Start Animation
+        animate();
+    </script>
+</body>
+</html>
